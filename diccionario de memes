@@ -1,0 +1,15 @@
+meme_dict = {
+    "CRINGE": "Algo excepcionalmente raro o embarazoso",
+    "LOL": "Una respuesta común a algo gracioso",
+    "GG": "Abreviación de Good Game, es decir Buen Juego",
+    "EZ": "Algo muy fácil",
+}
+
+while True:
+    word = input("Escribe una palabra que no entiendas (¡con mayúsculas!), o escribe 'SALIR' para terminar: ")
+    if word == "SALIR":  # Convertimos a mayúsculas para una comparación precisa
+        break
+    if word.upper() in meme_dict:
+        print(meme_dict[word])
+    else:
+        print("No se encuentra la palabra, espere a que la añadamos ;D")
