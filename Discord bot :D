@@ -1,7 +1,11 @@
 import discord
 from discord.ext import commands
 import random
-import time
+import asyncio
+import requests
+import os
+
+image_files = os.listdir('images')
 
 # Configuración de intents
 intents = discord.Intents.default()
@@ -10,9 +14,8 @@ intents.message_content = True
 # Crear bot con el prefijo de comando y cliente para manejar eventos
 bot = commands.Bot(command_prefix='/', intents=intents)
 
-# Variable para controlar si el bot está activo o inactivo
+# Variables de control
 bot_activo = False
-# Variable que detecta si las curiosidades ya fueron pedidas
 curiosidades = False
 
 # Datos curiosos de gatos
@@ -44,6 +47,17 @@ datos = [
 async def on_ready():
     print(f'Conexión exitosa, iniciamos sesión como: {bot.user}')
 
+def get_duck_image_url():    
+    url = 'https://random-d.uk/api/random'
+    res = requests.get(url)
+    data = res.json()
+    return data['url']
+
+@bot.command('duck')
+async def duck(ctx):
+    image_url = get_duck_image_url()
+    await ctx.send(image_url)
+
 # Comando para repetir "heh" varias veces
 @bot.command()
 async def heh(ctx, count_heh=5):
@@ -59,51 +73,48 @@ async def joined(ctx, member: discord.Member):
 # Manejo de mensajes personalizados para activar/desactivar el bot y dar curiosidades
 @bot.event
 async def on_message(message):
-    global bot_activo  # Asegura que modificamos la variable global
+    global bot_activo
     global curiosidades
 
     if message.author == bot.user:
         return
     
-    # Si el bot está inactivo y no es un saludo, no responde
     if not bot_activo and message.content != 'Hola Michibot':
         return
 
-    # Si el mensaje es "Hola Michibot", activa el bot
     if message.content == 'Hola Michibot':
         bot_activo = True
         await message.channel.send("¡Holi! ¿En qué puedo ayudarte? >ω<")
     
-    # Si el mensaje es "Adios Michibot", desactiva el bot
     elif message.content == 'Adios Michibot':
         bot_activo = False
         await message.channel.send("¡Adios! :3")
         curiosidades = False
 
-    # Si el bot está activo, procesa los comandos y respuestas
     elif bot_activo:
-        # Si el mensaje es "Hora de aprender!!"
         if message.content.startswith('Hora de aprender!!'):
             Aleatorio = random.choice(datos)
             await message.channel.send("Meow, ¡acá te va uno!")
             curiosidades = True
-            time.sleep(1)
+            await asyncio.sleep(1)
             await message.channel.send(Aleatorio)
 
-        # Si el mensaje es "Otro" y el bot ya había dado una curiosidad
         elif message.content.startswith('Otro') and curiosidades:
             Aleatorio2 = random.choice(datos)
             await message.channel.send("Meow, ¡acá te va otro!")
-            time.sleep(1)
+            await asyncio.sleep(1)
             await message.channel.send(Aleatorio2)
         
         else:
-            # Procesar comandos
             await bot.process_commands(message)
-    
-    # Si el bot está inactivo, no procesa ningún comando ni mensaje
-    else:
-        return
+
+# Lista de imágenes (define esta variable)
+@bot.command()
+async def mem(ctx):
+    img_name = random.choice(image_files)
+    with open(f'images/{img_name}', 'rb') as f:
+        picture = discord.File(f)
+        await ctx.send(file=picture)
 
 # Iniciar el bot
-bot.run("TOKEN")
+bot.run("TOKEN_HERE")
